@@ -92,13 +92,12 @@
 
     handleEat() {
       if (this.x == this.apple.x && this.y == this.apple.y) {
-        this.apple.eaten = true;
         // node +1
-      }
-
-      if (this.apple.eaten == true) {
         this.node.push([this.x, this.y]);
+        // get faster
         this.movingPoint -= 1;
+
+        this.apple.getEaten();
       }
     }
 
@@ -163,29 +162,17 @@
       this.count = 0;
       this.color = "#0b0";
       this.stage = stage;
-      this.eaten = false;
     }
-  
-    getCrds() {
-      var x = this.stage.left + (this.stage.cell * (Math.floor(Math.random() * 20)));
-      var y = this.stage.top + (this.stage.cell * (Math.floor(Math.random() * 15)));
-  
-      return [x, y];
+
+    // snake ate an apple
+    getEaten() {
+      this.x = this.stage.left + (this.stage.cell * (Math.floor(Math.random() * 20)));
+      this.y = this.stage.top + (this.stage.cell * (Math.floor(Math.random() * 15)));
+      
+      this.count++;
     }
 
     render() {
-      // snake ate an apple
-      if (this.eaten) {
-        this.count++;
-        
-        var [x, y] = this.getCrds();
-
-        this.x = x;
-        this.y = y;
-
-        this.eaten = false;
-      }
-
       ctx.beginPath();
       ctx.arc(this.x + this.radius, this.y + this.radius, 10, 0, 2 * Math.PI);
       ctx.fillStyle = this.color;

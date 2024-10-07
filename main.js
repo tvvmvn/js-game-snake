@@ -75,10 +75,9 @@
         ctx.fillRect(this.node[i][0], this.node[i][1], UNIT, UNIT);
       }
 
-      // saving gauge to move
+      // handle move
       this.m++;
-  
-      // when it changes direction, it move right now
+
       if (this._dir != this.dir) {
         this.m += this.movingPoint;
       }
@@ -107,10 +106,9 @@
 
         // initialize gauge 
         this.m = 0;
+        // save previous direction
+        this._dir = this.dir;
       }
-
-      // save previous direction
-      this._dir = this.dir;
     }
   }
   

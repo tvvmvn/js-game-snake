@@ -13,8 +13,6 @@ class Snake {
   nodeCount = 5;
   head = "#09f";
   body = "#0bf";
-  collision = false;
-  ate = false;
   node;
   UNIT;
   _dir;
@@ -32,34 +30,46 @@ class Snake {
     }
   }
 
-  render(appleX, appleY) {
-    // draw
-    for (var i = 0; i < this.nodeCount; i++) {
-      if (i == 0) {
-        ctx.fillStyle = this.head;
-      } else {
-        ctx.fillStyle = this.body;
+  selfCollision() {
+    for (var i = 1; i < this.nodeCount; i++) {
+      if (this.node[i][0] == this.node[0][0] && this.node[i][1] == this.node[0][1]) {
+        return true;
       }
-
-      ctx.fillRect(this.node[i][0], this.node[i][1], this.UNIT, this.UNIT);
     }
 
-    // handle move
+    return false;
+  }
+
+  wallCollision() {
+    var leftCrash = this.node[0][0] < 0
+    var rightCrash = this.node[0][0] >= canvas.width;
+    var topCrash = this.node[0][1] < 0
+    var bottomCrash = this.node[0][1] >= canvas.height;
+
+    if (leftCrash || rightCrash || topCrash || bottomCrash) {
+      return true;
+    }
+
+    return false;
+  }
+
+  ateApple(appleX, appleY) {
+    if (this.node[0][0] == appleX && this.node[0][1] == appleY) {
+      return true;
+    }
+
+    return false;
+  }
+
+  updateNodeCrds() {
     this.m++;
 
     if (this._dir != this.dir) {
       this.m += this.movingPoint;
     }
 
+    // one step forward
     if (this.m > this.movingPoint) {
-      // ate an apple
-      if (this.node[0][0] == appleX && this.node[0][1] == appleY) {
-        // node +1
-        this.nodeCount++;
-        this.ate = true;
-      }
-      
-      // one step forward
       for (var i = this.nodeCount - 1; i > 0; i--) {
         this.node[i][0] = this.node[i - 1][0];
         this.node[i][1] = this.node[i - 1][1];
@@ -74,28 +84,30 @@ class Snake {
         this.node[0][1] -= this.UNIT;
       }
 
-      // self collision
-      for (var i = 1; i < this.nodeCount; i++) {
-        if (this.node[i][0] == this.node[0][0] && this.node[i][1] == this.node[0][1]) {
-          this.collision = true;
-        }
-      }
-
-      // wall collision
-      var leftCrash = this.node[0][0] < 0
-      var rightCrash = this.node[0][0] >= canvas.width;
-      var topCrash = this.node[0][1] < 0
-      var bottomCrash = this.node[0][1] >= canvas.height;
-
-      if (leftCrash || rightCrash || topCrash || bottomCrash) {
-        this.collision = true;
-      }
-
-      // initialize gauge 
-      this.m = 0;
       // save previous direction
       this._dir = this.dir;
+      this.m = 0;
     }
+  }
+
+  addNode(lastNode) {
+    this.node[lastNode][0] = this.node[lastNode - 1][0];
+    this.node[lastNode][1] = this.node[lastNode - 1][1];
+  }
+
+  render() {
+    // draw
+    for (var i = 0; i < this.nodeCount; i++) {
+      if (i == 0) {
+        ctx.fillStyle = this.head;
+      } else {
+        ctx.fillStyle = this.body;
+      }
+
+      ctx.fillRect(this.node[i][0], this.node[i][1], this.UNIT, this.UNIT);
+    }
+
+    this.updateNodeCrds();
   }
 }
 
@@ -159,19 +171,18 @@ class Game {
 
   render() {
     this.clearCanvas();
-    this.snake.render(this.apple.x, this.apple.y);
+    this.apple.render();
+    this.snake.render();
 
-    if (this.snake.ate) {
-      // update crds of an apple.
+    if (this.snake.ateApple(this.apple.x, this.apple.y)) {
       this.apple.x = this.apple.getCrds();
       this.apple.y = this.apple.getCrds();
+      this.snake.addNode(this.snake.nodeCount);
+      this.snake.nodeCount++;
       this.eatenCount++;
-      this.snake.ate = false;
     }
 
-    this.apple.render();
-  
-    if (this.snake.collision) {
+    if (this.snake.selfCollision() || this.snake.wallCollision()) {
       this.message.render(this.eatenCount);
     } else {
       requestAnimationFrame(() => this.render());

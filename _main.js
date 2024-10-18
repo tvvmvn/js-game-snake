@@ -12,14 +12,12 @@ class Snake {
   body = "#0bf";
   node;
   UNIT;
-  _dir;
-  dir;
+  frame = 0;
 
   constructor(UNIT, CELLS, Direction) {
     this.node = new Array(CELLS);
     this.UNIT = UNIT;
-    this.dir = Direction.RIGHT;
-    this._dir = Direction.RIGHT;
+    this.Direction = Direction;
 
     // initialize nodes
     for (var i = 0; i < CELLS; i++) {
@@ -58,7 +56,7 @@ class Snake {
     return false;
   }
 
-  render() {
+  render(dir) {
     for (var i = 0; i < this.nodeCount; i++) {
       if (i == 0) {
         ctx.fillStyle = this.head;
@@ -68,6 +66,25 @@ class Snake {
 
       ctx.fillRect(this.node[i][0], this.node[i][1], this.UNIT, this.UNIT);
     }
+
+    // Snake moves per 0.1s
+    if (this.frame % 10 == 0) {
+      for (var i = this.nodeCount - 1; i > 0; i--) {
+        this.node[i][0] = this.node[i - 1][0];
+        this.node[i][1] = this.node[i - 1][1];
+      }
+      if (dir == this.Direction.RIGHT) {
+        this.node[0][0] += this.UNIT;
+      } else if (dir == this.Direction.DOWN) {
+        this.node[0][1] += this.UNIT;
+      } else if (dir == this.Direction.LEFT) {
+        this.node[0][0] -= this.UNIT;
+      } else if (dir == this.Direction.UP) {
+        this.node[0][1] -= this.UNIT;
+      }
+    }
+    
+    this.frame++;
   }
 }
 
@@ -123,9 +140,8 @@ class Game {
   apple = new Apple(this.UNIT); 
   snake = new Snake(this.UNIT, this.CELLS, this.Direction);
   message = new Message(); 
-  over = false;
   eatenCount = 0;
-  frame = 0;
+  dir = this.Direction.RIGHT;
   timer;
 
   constructor() {
@@ -138,58 +154,43 @@ class Game {
 
   actionPerformed() {
     this.clearCanvas();
-    this.snake.render();
-    this.apple.render();
-    
-    // Snake moves per 0.1s
-    if (this.frame % 10 == 0) {
-      for (var i = this.snake.nodeCount - 1; i > 0; i--) {
-        this.snake.node[i][0] = this.snake.node[i - 1][0];
-        this.snake.node[i][1] = this.snake.node[i - 1][1];
-      }
-      if (this.snake.dir == this.Direction.RIGHT) {
-        this.snake.node[0][0] += this.UNIT;
-      } else if (this.snake.dir == this.Direction.DOWN) {
-        this.snake.node[0][1] += this.UNIT;
-      } else if (this.snake.dir == this.Direction.LEFT) {
-        this.snake.node[0][0] -= this.UNIT;
-      } else if (this.snake.dir == this.Direction.UP) {
-        this.snake.node[0][1] -= this.UNIT;
-      }
-    }
-    
-    this.frame++;
 
-    // Snake ate apple
+    // Snake
+    this.snake.render(this.dir);
+
+    // ate apple
     if (this.snake.ateApple(this.apple.x, this.apple.y)) {
       this.apple.updateCrds();
       this.snake.nodeCount++;
       this.eatenCount++;
     }
 
-    // Collision
+    // collision
     if (this.snake.selfCollision() || this.snake.wallCollision()) {
       this.message.render(this.eatenCount);
       clearInterval(this.timer);
     } 
+
+    // Apple
+    this.apple.render();
   }
 
   keyDownHandler(e) {
     if (e.key == "ArrowDown") {
-      if (this.snake.dir != this.Direction.UP) {
-        this.snake.dir = this.Direction.DOWN;
+      if (this.dir != this.Direction.UP) {
+        this.dir = this.Direction.DOWN;
       }
     } else if (e.key == "ArrowLeft") {
-      if (this.snake.dir != this.Direction.RIGHT) {
-        this.snake.dir = this.Direction.LEFT;
+      if (this.dir != this.Direction.RIGHT) {
+        this.dir = this.Direction.LEFT;
       }
     } else if (e.key == "ArrowRight") {
-      if (this.snake.dir != this.Direction.LEFT) {
-        this.snake.dir = this.Direction.RIGHT;
+      if (this.dir != this.Direction.LEFT) {
+        this.dir = this.Direction.RIGHT;
       }
     } else if (e.key == "ArrowUp") {
-      if (this.snake.dir != this.Direction.DOWN) {
-        this.snake.dir = this.Direction.UP;
+      if (this.dir != this.Direction.DOWN) {
+        this.dir = this.Direction.UP;
       }
     }
   }

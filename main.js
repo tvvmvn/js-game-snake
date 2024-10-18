@@ -56,7 +56,7 @@ class Snake {
     return false;
   }
 
-  render(dir) {
+  render(crds, n) {
     for (var i = 0; i < this.nodeCount; i++) {
       if (i == 0) {
         ctx.fillStyle = this.head;
@@ -73,17 +73,9 @@ class Snake {
         this.node[i][0] = this.node[i - 1][0];
         this.node[i][1] = this.node[i - 1][1];
       }
-      if (dir == this.Direction.RIGHT) {
-        this.node[0][0] += this.UNIT;
-      } else if (dir == this.Direction.DOWN) {
-        this.node[0][1] += this.UNIT;
-      } else if (dir == this.Direction.LEFT) {
-        this.node[0][0] -= this.UNIT;
-      } else if (dir == this.Direction.UP) {
-        this.node[0][1] -= this.UNIT;
-      }
+      this.node[0][crds] += (n * this.UNIT);
     }
-    
+
     this.frame++;
   }
 }
@@ -155,17 +147,25 @@ class Game {
   actionPerformed() {
     this.clearCanvas();
 
-    // Snake
-    this.snake.render(this.dir);
+    // Snake move
+    if (this.dir == this.Direction.RIGHT) {
+      this.snake.render(0, 1);
+    } else if (this.dir == this.Direction.DOWN) {
+      this.snake.render(1, 1);
+    } else if (this.dir == this.Direction.LEFT) {
+      this.snake.render(0, -1);
+    } else if (this.dir == this.Direction.UP) {
+      this.snake.render(1, -1);
+    }
 
-    // ate apple
+    // Snake ate apple
     if (this.snake.ateApple(this.apple.x, this.apple.y)) {
       this.apple.updateCrds();
       this.snake.nodeCount++;
       this.eatenCount++;
     }
 
-    // collision
+    // Snake collision
     if (this.snake.selfCollision() || this.snake.wallCollision()) {
       this.message.render(this.eatenCount);
       clearInterval(this.timer);

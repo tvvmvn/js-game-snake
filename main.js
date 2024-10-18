@@ -59,6 +59,14 @@ class Snake {
     return false;
   }
 
+  setDirection(dir) {
+    this.dir = dir;
+  }
+
+  addNode() {
+    this.nodeCount++;
+  }
+
   render() {
     for (var i = 0; i < this.nodeCount; i++) {
       if (i == 0) {
@@ -164,7 +172,7 @@ class Game {
     // Snake ate apple
     if (this.snake.ateApple(this.apple.x, this.apple.y)) {
       this.apple.updateCrds();
-      this.snake.nodeCount++;
+      this.snake.addNode();
       this.eatenCount++;
     }
 
@@ -181,19 +189,19 @@ class Game {
   keyDownHandler(e) {
     if (e.key == "ArrowDown") {
       if (this.snake.dir != this.Direction.UP) {
-        this.snake.dir = this.Direction.DOWN;
+        this.snake.setDirection(this.Direction.DOWN)
       }
     } else if (e.key == "ArrowLeft") {
       if (this.snake.dir != this.Direction.RIGHT) {
-        this.snake.dir = this.Direction.LEFT;
+        this.snake.setDirection(this.Direction.LEFT);
       }
     } else if (e.key == "ArrowRight") {
       if (this.snake.dir != this.Direction.LEFT) {
-        this.snake.dir = this.Direction.RIGHT;
+        this.snake.setDirection(this.Direction.RIGHT);
       }
     } else if (e.key == "ArrowUp") {
       if (this.snake.dir != this.Direction.DOWN) {
-        this.snake.dir = this.Direction.UP;
+        this.snake.setDirection(this.Direction.UP);
       }
     }
   }

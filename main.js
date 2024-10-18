@@ -10,24 +10,27 @@ class Snake {
   nodeCount = 5;
   head = "#09f";
   body = "#0bf";
-  node;
+  nodes;
   UNIT;
+  dir;
   frame = 0;
+  Direction
 
   constructor(UNIT, CELLS, Direction) {
-    this.node = new Array(CELLS);
+    this.nodes = new Array(CELLS);
     this.UNIT = UNIT;
     this.Direction = Direction;
+    this.dir = Direction.RIGHT;
 
     // initialize nodes
     for (var i = 0; i < CELLS; i++) {
-      this.node[i] = [-UNIT, 0];
+      this.nodes[i] = [-UNIT, 0];
     }
   }
 
   selfCollision() {
     for (var i = 1; i < this.nodeCount; i++) {
-      if (this.node[i][0] == this.node[0][0] && this.node[i][1] == this.node[0][1]) {
+      if (this.nodes[i][0] == this.nodes[0][0] && this.nodes[i][1] == this.nodes[0][1]) {
         return true;
       }
     }
@@ -36,10 +39,10 @@ class Snake {
   }
 
   wallCollision() {
-    var leftCrash = this.node[0][0] < 0
-    var rightCrash = this.node[0][0] >= canvas.width;
-    var topCrash = this.node[0][1] < 0
-    var bottomCrash = this.node[0][1] >= canvas.height;
+    var leftCrash = this.nodes[0][0] < 0
+    var rightCrash = this.nodes[0][0] >= canvas.width;
+    var topCrash = this.nodes[0][1] < 0
+    var bottomCrash = this.nodes[0][1] >= canvas.height;
 
     if (leftCrash || rightCrash || topCrash || bottomCrash) {
       return true;
@@ -49,14 +52,14 @@ class Snake {
   }
 
   ateApple(appleX, appleY) {
-    if (this.node[0][0] == appleX && this.node[0][1] == appleY) {
+    if (this.nodes[0][0] == appleX && this.nodes[0][1] == appleY) {
       return true;
     }
 
     return false;
   }
 
-  render(crds, n) {
+  render() {
     for (var i = 0; i < this.nodeCount; i++) {
       if (i == 0) {
         ctx.fillStyle = this.head;
@@ -64,16 +67,24 @@ class Snake {
         ctx.fillStyle = this.body;
       }
 
-      ctx.fillRect(this.node[i][0], this.node[i][1], this.UNIT, this.UNIT);
+      ctx.fillRect(this.nodes[i][0], this.nodes[i][1], this.UNIT, this.UNIT);
     }
 
     // Snake moves per 0.1s
     if (this.frame % 10 == 0) {
       for (var i = this.nodeCount - 1; i > 0; i--) {
-        this.node[i][0] = this.node[i - 1][0];
-        this.node[i][1] = this.node[i - 1][1];
+        this.nodes[i][0] = this.nodes[i - 1][0];
+        this.nodes[i][1] = this.nodes[i - 1][1];
       }
-      this.node[0][crds] += (n * this.UNIT);
+      if (this.dir == this.Direction.RIGHT) {
+        this.nodes[0][0] += this.UNIT;
+      } else if (this.dir == this.Direction.DOWN) {
+        this.nodes[0][1] += this.UNIT;
+      } else if (this.dir == this.Direction.LEFT) {
+        this.nodes[0][0] -= this.UNIT;
+      } else if (this.dir == this.Direction.UP) {
+        this.nodes[0][1] -= this.UNIT;
+      }
     }
 
     this.frame++;
@@ -148,15 +159,7 @@ class Game {
     this.clearCanvas();
 
     // Snake move
-    if (this.dir == this.Direction.RIGHT) {
-      this.snake.render(0, 1);
-    } else if (this.dir == this.Direction.DOWN) {
-      this.snake.render(1, 1);
-    } else if (this.dir == this.Direction.LEFT) {
-      this.snake.render(0, -1);
-    } else if (this.dir == this.Direction.UP) {
-      this.snake.render(1, -1);
-    }
+    this.snake.render();
 
     // Snake ate apple
     if (this.snake.ateApple(this.apple.x, this.apple.y)) {
@@ -165,7 +168,7 @@ class Game {
       this.eatenCount++;
     }
 
-    // Snake collision
+    // Game over
     if (this.snake.selfCollision() || this.snake.wallCollision()) {
       this.message.render(this.eatenCount);
       clearInterval(this.timer);
@@ -177,20 +180,20 @@ class Game {
 
   keyDownHandler(e) {
     if (e.key == "ArrowDown") {
-      if (this.dir != this.Direction.UP) {
-        this.dir = this.Direction.DOWN;
+      if (this.snake.dir != this.Direction.UP) {
+        this.snake.dir = this.Direction.DOWN;
       }
     } else if (e.key == "ArrowLeft") {
-      if (this.dir != this.Direction.RIGHT) {
-        this.dir = this.Direction.LEFT;
+      if (this.snake.dir != this.Direction.RIGHT) {
+        this.snake.dir = this.Direction.LEFT;
       }
     } else if (e.key == "ArrowRight") {
-      if (this.dir != this.Direction.LEFT) {
-        this.dir = this.Direction.RIGHT;
+      if (this.snake.dir != this.Direction.LEFT) {
+        this.snake.dir = this.Direction.RIGHT;
       }
     } else if (e.key == "ArrowUp") {
-      if (this.dir != this.Direction.DOWN) {
-        this.dir = this.Direction.UP;
+      if (this.snake.dir != this.Direction.DOWN) {
+        this.snake.dir = this.Direction.UP;
       }
     }
   }

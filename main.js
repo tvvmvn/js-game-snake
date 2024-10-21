@@ -8,19 +8,14 @@ canvas.style.backgroundColor = "#000";
 // class
 class Snake {
   nodeCount = 5;
-  head = "#09f";
-  body = "#0bf";
+  headColor = "#09f";
+  bodyColor = "#0bf";
   nodes;
   UNIT;
-  dir;
-  frame = 0;
-  Direction
 
-  constructor(UNIT, CELLS, Direction) {
+  constructor(UNIT, CELLS) {
     this.nodes = new Array(CELLS);
     this.UNIT = UNIT;
-    this.Direction = Direction;
-    this.dir = Direction.RIGHT;
 
     // initialize nodes
     for (var i = 0; i < CELLS; i++) {
@@ -59,43 +54,39 @@ class Snake {
     return false;
   }
 
-  setDirection(dir) {
-    this.dir = dir;
-  }
-
   addNode() {
     this.nodeCount++;
+  }
+
+  setMove(dir, Direction) {
+    // body
+    for (var i = this.nodeCount - 1; i > 0; i--) {
+      this.nodes[i][0] = this.nodes[i - 1][0];
+      this.nodes[i][1] = this.nodes[i - 1][1];
+    }
+
+    // head
+    if (dir == Direction.RIGHT) {
+      this.nodes[0][0] += this.UNIT;
+    } else if (dir == Direction.DOWN) {
+      this.nodes[0][1] += this.UNIT;
+    } else if (dir == Direction.LEFT) {
+      this.nodes[0][0] -= this.UNIT;
+    } else if (dir == Direction.UP) {
+      this.nodes[0][1] -= this.UNIT;
+    }
   }
 
   render() {
     for (var i = 0; i < this.nodeCount; i++) {
       if (i == 0) {
-        ctx.fillStyle = this.head;
+        ctx.fillStyle = this.headColor;
       } else {
-        ctx.fillStyle = this.body;
+        ctx.fillStyle = this.bodyColor;
       }
 
       ctx.fillRect(this.nodes[i][0], this.nodes[i][1], this.UNIT, this.UNIT);
     }
-
-    // Snake moves per 0.1s
-    if (this.frame % 10 == 0) {
-      for (var i = this.nodeCount - 1; i > 0; i--) {
-        this.nodes[i][0] = this.nodes[i - 1][0];
-        this.nodes[i][1] = this.nodes[i - 1][1];
-      }
-      if (this.dir == this.Direction.RIGHT) {
-        this.nodes[0][0] += this.UNIT;
-      } else if (this.dir == this.Direction.DOWN) {
-        this.nodes[0][1] += this.UNIT;
-      } else if (this.dir == this.Direction.LEFT) {
-        this.nodes[0][0] -= this.UNIT;
-      } else if (this.dir == this.Direction.UP) {
-        this.nodes[0][1] -= this.UNIT;
-      }
-    }
-
-    this.frame++;
   }
 }
 
@@ -149,25 +140,33 @@ class Game {
     DOWN: 3
   }  
   apple = new Apple(this.UNIT); 
-  snake = new Snake(this.UNIT, this.CELLS, this.Direction);
+  snake = new Snake(this.UNIT, this.CELLS);
   message = new Message(); 
   eatenCount = 0;
   dir = this.Direction.RIGHT;
+  frame = 0;
   timer;
 
   constructor() {
     this.timer = setInterval(() => this.actionPerformed(), 10);
   }
 
-  clearCanvas() {
+  clearScreen() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
   actionPerformed() {
-    this.clearCanvas();
+    this.clearScreen();
 
-    // Snake move
+    // Snake 
     this.snake.render();
+
+    // Snake moves
+    if (this.frame % 10 == 0) {
+      this.snake.setMove(this.dir, this.Direction);
+    }
+
+    this.frame++;
 
     // Snake ate apple
     if (this.snake.ateApple(this.apple.x, this.apple.y)) {
@@ -188,20 +187,20 @@ class Game {
 
   keyDownHandler(e) {
     if (e.key == "ArrowDown") {
-      if (this.snake.dir != this.Direction.UP) {
-        this.snake.setDirection(this.Direction.DOWN)
+      if (this.dir != this.Direction.UP) {
+        this.dir = this.Direction.DOWN;
       }
     } else if (e.key == "ArrowLeft") {
-      if (this.snake.dir != this.Direction.RIGHT) {
-        this.snake.setDirection(this.Direction.LEFT);
+      if (this.dir != this.Direction.RIGHT) {
+        this.dir = this.Direction.LEFT;
       }
     } else if (e.key == "ArrowRight") {
-      if (this.snake.dir != this.Direction.LEFT) {
-        this.snake.setDirection(this.Direction.RIGHT);
+      if (this.dir != this.Direction.LEFT) {
+        this.dir = this.Direction.RIGHT;
       }
     } else if (e.key == "ArrowUp") {
-      if (this.snake.dir != this.Direction.DOWN) {
-        this.snake.setDirection(this.Direction.UP);
+      if (this.dir != this.Direction.DOWN) {
+        this.dir = this.Direction.UP;
       }
     }
   }
